@@ -1,4 +1,4 @@
-# rf880b2c43ed1f9451f36
+# aaazhouquandecangku
 
 Inference-only package for a scene-text visual-style encoder. Given a tightly
 cropped text-region image, the encoder describes how the text looks while
@@ -29,8 +29,8 @@ Python 3.10 is the tested version. Python 3.11 is supported by the package
 metadata but has not been used for the release validation.
 
 ```bash
-git clone https://github.com/zqpresent/rf880b2c43ed1f9451f36.git
-cd rf880b2c43ed1f9451f36
+git clone https://github.com/zqpresent/aaazhouquandecangku.git
+cd aaazhouquandecangku
 python3.10 -m venv .venv
 source .venv/bin/activate
 python -m pip install --upgrade pip
