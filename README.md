@@ -55,7 +55,7 @@ inference is supported. A GPU is useful for larger batches but is not required.
 
 ## Download the public weights
 
-Set the model ID once the model repository is published:
+Set the public model ID:
 
 ```bash
 export OPAQUE_MODEL_ID="zqpresent/m0a3cebee1aaac92424b0"
