@@ -58,7 +58,7 @@ inference is supported. A GPU is useful for larger batches but is not required.
 Set the model ID once the model repository is published:
 
 ```bash
-export OPAQUE_MODEL_ID="__HF_ACCOUNT__/m0a3cebee1aaac92424b0"
+export OPAQUE_MODEL_ID="zqpresent/m0a3cebee1aaac92424b0"
 opaque-encoder download "$OPAQUE_MODEL_ID" --local-dir weights
 ```
 
