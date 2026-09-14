@@ -4,8 +4,8 @@ Inference-only package for a scene-text visual-style encoder. Given a tightly
 cropped text-region image, the encoder describes how the text looks while
 trying to suppress the literal text content and surrounding background.
 
-The repository name is intentionally opaque. The repository and model are
-public, so the name must not be treated as an access-control mechanism.
+The repository and model names are intentionally opaque. All three artifacts
+are public, so opaque names must not be treated as an access-control mechanism.
 
 ## What the encoder returns
 
@@ -55,20 +55,23 @@ inference is supported. A GPU is useful for larger batches but is not required.
 
 ## Download the public weights
 
-Set the public model ID:
+Choose the model for the intended script coverage:
+
+| Public model ID | Scope | Weight SHA-256 |
+|---|---|---|
+| [`zqpresent/m0a3cebee1aaac92424b0`](https://huggingface.co/zqpresent/m0a3cebee1aaac92424b0) | Original English model | `edb52cbd56667a5f317271b31f329858500bb2ee20e791c631f43321b42fd544` |
+| [`zqpresent/m2d8e6c4f1a9b7350e42`](https://huggingface.co/zqpresent/m2d8e6c4f1a9b7350e42) | Chinese-specialized model | `eb9a09231f43dbb69e4399e81eb2c0802e83b3948f241dcd0bb6576bf57e51f2` |
+| [`zqpresent/m7c1f9a2e4b8d6035a71`](https://huggingface.co/zqpresent/m7c1f9a2e4b8d6035a71) | Chinese/English model, including cross-language matching | `cd4ae96fa1c3b2d26389c48e83dafac82901189ea90d2b3fee7744b01681bb8a` |
+
+For general Chinese/English use, download the bilingual artifact:
 
 ```bash
-export OPAQUE_MODEL_ID="zqpresent/m0a3cebee1aaac92424b0"
+export OPAQUE_MODEL_ID="zqpresent/m7c1f9a2e4b8d6035a71"
 opaque-encoder download "$OPAQUE_MODEL_ID" --local-dir weights
 ```
 
 The downloader requests only `config.json` and `model.safetensors`, uses
-anonymous access, and checks the SHA-256 digest declared in the config. The
-published weight digest is:
-
-```text
-edb52cbd56667a5f317271b31f329858500bb2ee20e791c631f43321b42fd544
-```
+anonymous access, and checks the SHA-256 digest declared in the config.
 
 After downloading, `weights/` is fully self-contained and can be moved to an
 offline machine.
@@ -136,9 +139,9 @@ of the two. It streams one batch at a time and returns CPU `float32` tensors.
 - The model captures visual similarity; it does not recognize or transcribe the
   characters.
 
-## Training evidence
+## Original English model evidence
 
-The released checkpoint was selected with one fixed development seed for each
+The original English checkpoint was selected with one fixed development seed for each
 protocol. Its training used counterfactual synthetic groups in which typography,
 appearance, content, and background could be varied independently. The final
 three stages exposed the model to 4.4 million rendered scene views. Test font
@@ -162,12 +165,31 @@ background; it should therefore not be presented as an equally strict
 cross-background metric. Retrieval results are not classification accuracy and
 do not establish performance on real photographs.
 
+## Chinese and bilingual model evidence
+
+Both additions were selected on development data before final held-out tests.
+The Chinese-specialized stage used 40,000 groups / 640,000 rendered views. The
+bilingual stage used 60,000 groups / 1,920,000 rendered views, including about
+25% original-English font replay. On the controlled three-render-seed test, the
+following global-style R@1 values were observed:
+
+| Model | Chinese to Chinese | English to English | Chinese to English | English to Chinese |
+|---|---:|---:|---:|---:|
+| Chinese-specialized | 80.21% | 62.55% | 61.91% | 58.12% |
+| Chinese/English | 80.97% | 74.98% | 79.26% | 79.56% |
+
+Use the Chinese-specialized artifact for the strongest observed strict Chinese
+font retrieval (`33.48%` R@1 versus `28.74%` for the bilingual artifact). Use
+the bilingual artifact when English retention or cross-language style matching
+matters. These are synthetic retrieval measurements, not real-scene accuracy.
+
 ## Known limitations
 
 - Evaluation is on controlled synthetic data; no real-world paired style test
   set has been used.
-- Training and evaluation are English-first and cover 74 sampled characters,
-  not multilingual shaping.
+- The original artifact is English-first. The two new artifacts cover Chinese
+  and/or English only; the Chinese character scope is GB2312 level 1, not all
+  Han characters or multilingual shaping.
 - Letter-spacing sensitivity is weaker than font, fill, stroke, and shadow.
 - Low text/background contrast and visually similar font faces remain difficult.
 - Content/background leakage is low under the reported probes, not mathematically
@@ -177,15 +199,16 @@ do not establish performance on real photographs.
 
 ## Reproducibility and release safety
 
-The public artifact contains only inference parameters: the backbone, style
+The public artifacts contain only inference parameters: the backbone, style
 query head, and font/appearance projection heads. Training-only classifiers,
 adversaries, optimizer state, scheduler state, data manifests, and local paths
 are not included. `safetensors` is used instead of a pickle-based checkpoint.
 
-The public model was compared numerically with the source checkpoint on four
-input aspect ratios. Maximum absolute differences were `5.59e-8` for
+Each public model was compared numerically with its source checkpoint on four
+input aspect ratios. For the original English model, maximum absolute differences were `5.59e-8` for
 `z_global`, `1.16e-7` for `z_font`, `7.46e-8` for `z_appearance`, and `2.39e-6`
 for `style_tokens`; all outputs were finite and normalized outputs had unit norm.
+The two newer model repositories include their own `verification.json` records.
 
 See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) for backbone and library
 attribution and license scope. Public read access does not itself grant a
