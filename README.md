@@ -14,7 +14,7 @@ are public, so opaque names must not be treated as an access-control mechanism.
 | `z_global` | `[256]` | Overall text style: typography plus appearance |
 | `z_font` | `[128]` | Font/typography-oriented representation |
 | `z_appearance` | `[128]` | Fill, stroke, shadow, opacity-oriented representation |
-| `style_tokens` | `[8, 384]` | Local query tokens for downstream research |
+| `style_tokens` | `[8, backbone_dim]` | Local query tokens for downstream research (`384` for ViT-S, `768` for ViT-B) |
 
 The three `z_*` vectors are L2-normalized, so cosine similarity is simply their
 dot product. `style_tokens` are not normalized and have not yet been validated
@@ -61,12 +61,13 @@ Choose the model for the intended script coverage:
 |---|---|---|
 | [`zqpresent/m0a3cebee1aaac92424b0`](https://huggingface.co/zqpresent/m0a3cebee1aaac92424b0) | Original English model | `edb52cbd56667a5f317271b31f329858500bb2ee20e791c631f43321b42fd544` |
 | [`zqpresent/m2d8e6c4f1a9b7350e42`](https://huggingface.co/zqpresent/m2d8e6c4f1a9b7350e42) | Chinese-specialized model | `eb9a09231f43dbb69e4399e81eb2c0802e83b3948f241dcd0bb6576bf57e51f2` |
-| [`zqpresent/m7c1f9a2e4b8d6035a71`](https://huggingface.co/zqpresent/m7c1f9a2e4b8d6035a71) | Chinese/English model, including cross-language matching | `cd4ae96fa1c3b2d26389c48e83dafac82901189ea90d2b3fee7744b01681bb8a` |
+| [`zqpresent/m7c1f9a2e4b8d6035a71`](https://huggingface.co/zqpresent/m7c1f9a2e4b8d6035a71) | Earlier Chinese/English ViT-S model | `cd4ae96fa1c3b2d26389c48e83dafac82901189ea90d2b3fee7744b01681bb8a` |
+| [`zqpresent/m8f4d1c9a6e2b7035d14`](https://huggingface.co/zqpresent/m8f4d1c9a6e2b7035d14) | Expanded Chinese/English ViT-B model (recommended) | `bca61e519c423b642b0460949cb4750222a10761f12c39a36a8c05cc5066ee27` |
 
 For general Chinese/English use, download the bilingual artifact:
 
 ```bash
-export OPAQUE_MODEL_ID="zqpresent/m7c1f9a2e4b8d6035a71"
+export OPAQUE_MODEL_ID="zqpresent/m8f4d1c9a6e2b7035d14"
 opaque-encoder download "$OPAQUE_MODEL_ID" --local-dir weights
 ```
 
@@ -121,7 +122,7 @@ score = vectors["z_global"] @ vectors["z_global"].T
 print(vectors["z_global"].shape)      # torch.Size([2, 256])
 print(vectors["z_font"].shape)        # torch.Size([2, 128])
 print(vectors["z_appearance"].shape)  # torch.Size([2, 128])
-print(vectors["style_tokens"].shape)  # torch.Size([2, 8, 384])
+print(vectors["style_tokens"].shape)  # torch.Size([2, 8, 768]) for the ViT-B model
 print(score)
 ```
 
@@ -196,6 +197,26 @@ matters. These are synthetic retrieval measurements, not real-scene accuracy.
   zero.
 - `style_tokens` are an interface for future work, not proof that a downstream
   editor will use them successfully.
+
+## Expanded bilingual ViT-B model evidence
+
+The recommended ViT-B artifact was trained without the old English replay pool on
+10,000,000 bilingual counterfactual groups (32 views per group), corresponding to
+320,000,000 rendered scene exposures. Its training pool contained 4,014 font faces
+from 2,374 families.
+
+The final paired test used identical images for the earlier and expanded encoders:
+53 font faces / 27 families unseen to both training pools by exact file and rendered
+glyph signatures, three fixed render seeds, and 24,576 images in total.
+
+| Font retrieval | Earlier model R@1 | Expanded ViT-B R@1 | Change |
+|---|---:|---:|---:|
+| Chinese to Chinese | 72.71% | 87.88% | +15.17 pp |
+| English to English | 66.92% | 81.37% | +14.45 pp |
+| Chinese to English | 35.31% | 63.43% | +28.12 pp |
+| English to Chinese | 38.22% | 61.08% | +22.86 pp |
+
+These are synthetic retrieval results and do not establish accuracy on real photographs.
 
 ## Reproducibility and release safety
 

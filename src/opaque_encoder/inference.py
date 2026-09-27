@@ -158,7 +158,7 @@ class StyleEncoder:
         """Encode a nonempty iterable, preprocessing at most one batch at a time.
 
         Returns CPU float32 tensors z_global [N,256], z_font [N,128],
-        z_appearance [N,128], and style_tokens [N,8,384] for the published model.
+        z_appearance [N,128], and style_tokens [N,8,backbone_dim].
         All three z vectors are L2-normalized; style_tokens are not.
         """
         if isinstance(batch_size, bool) or not isinstance(batch_size, int) or batch_size < 1:
